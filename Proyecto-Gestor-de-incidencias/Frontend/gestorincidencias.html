@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gestor de incidentes </title>
+        <link rel="stylesheet" href="style.css">
+        <script src="script.js"></script>
+    </head>
+    <body>
+        <h1> Gestión de Íncidencias Técnicas </h1>
+
+        <div id="miVentana" style="display: none;">
+            <div>
+                <h1> Registro de sesión </h1>
+                <form method="post">
+                    <label> Usuario: </label>
+                    <input type="text" title="usuario" id="userRegistro" onblur="this.value = this.value.toUpperCase()" required> <br><br>
+                    <label> Contraseña: </label>
+                    <input type="password" title="contraseña" id="passwordRegistro" placeholder="3 letras y 3 números" required> <br><br> 
+
+                    <button type="button" title="botón" onclick="secuencia()" > Registrarse </button>
+                    <button type="button" onclick="cerrarVentana()"> Cerrar ventana </button> 
+                </form>
+            </div>        
+        </div>
+
+        <div id="miVentana1" style="display: none;">
+            <div>
+                <h1> Iniciar sesión </h1>
+                <form method="post">
+                    <label> Usuario: </label>
+                    <input type="text" title="usuario" id="userLogin" onblur="this.value = this.value.toUpperCase()" required> <br><br>
+                    <label> Contraseña: </label>
+                    <input type="password" title="contraseña" id="passwordLogin" required> <br><br>
+
+                    <button type="button" title="botón" onclick="iniciarSesion()"> Iniciar sesión </button>
+                   <button type="button" onclick="cerrarVentanaLogin()"> Cerrar ventana </button> 
+                </form>
+            </div>        
+        </div>
+
+        <div>
+            <button class="btn-grande btn-azul btn-margen1" type="button" onclick="abrirVentana()"> Registrar usuario </button>
+            <button class="btn-grande btn-azul btn-margen1" type="button" onclick="abrirVentanaLogin()"> Conectar usuario </button>
+        </div>
+        
+        <div id="botonesOcultos" style="display: none;">
+            <button class="btn-grande  btn-margen2" type="button" onclick="abrirVentanaIncidencia()"> Crear una nueva incidencia </button>
+            <button class="btn-grande  btn-margen2" type="button" onclick="borrarIncidencia()"> Borrar incidencia </button>
+        </div>
+
+        <div id="miVentana2" style="display: none;">
+            <div>
+                <h1> Nueva incidencia </h1>
+                <form method="post" id="formularioIncidencia">
+                    <label> Fecha: </label>
+                    <input type="date" title="fecha" id="date" required> <br><br>
+                    
+                    <label> Descripción: </label>
+                    <input type="text" title="desciption" id="desciption" required> <br><br>
+                    
+                    <label> Tipo: </label>
+                    <select id="tipoIncidencia" required>
+                        <option value="">Selecciona un tipo</option>
+                        <option value="telematica">Telemática</option>
+                        <option value="presencial">Presencial</option>
+                    </select> <br><br>
+
+                    <label> Prioridad: </label>
+                    <select id="prioridadIncidencia" required>
+                        <option value="">Selecciona prioridad</option>
+                        <option value="1">1 - Muy baja </option>
+                        <option value="2">2 - Baja </option>
+                        <option value="3">3 - Media </option>
+                        <option value="4">4 - Alta </option>
+                        <option value="5">5 - Muy alta </option>
+                        <option value="6">6 - Crítica </option>
+                    </select> <br><br>
+
+                    <label> Tiempo estimado </label>
+                    <input type="number" id="tiempoEstimado" required> <br><br>
+
+                    <label> Técnico asignado: </label>
+                    <select id="tecnicoAsignado" required>
+                        <option value="">Selecciona un técnico</option>
+                        <option value="Ana García">Ana García</option>
+                        <option value="Carlos Martínez">Carlos Martínez</option>
+                        <option value="Laura Sánchez">Laura Sánchez</option>
+                        <option value="Miguel Torres">Miguel Torres</option>
+                        <option value="Sofía Ramírez">Sofía Ramírez</option>
+                    </select> <br><br>
+
+                    <button type="button" onclick="crearIncidencia()"> Crear incidencia </button>
+                    <button type="button" onclick="cerrarVentanaIncidencia()"> Cancelar </button>
+                </form>
+            </div>        
+        </div>
+
+        <br><br>
+
+        <table>
+            <!-- El tr son las filas y el td/th son las columnas -->
+            <tr>
+                <td> Localizador </td>
+                <td> Fecha </td>
+                <td> Descripción  </td>
+                <td> Tipo </td>
+                <td> Prioridad </td>
+                <td> Tiempo asignado (minutos) </td>
+                <td> Técnico asignado </td>
+            </tr>
+        </table>
+        
+    </body>
+</html>

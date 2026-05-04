@@ -1,0 +1,128 @@
+body {
+    /* 1. Centra elementos "inline" como texto, botones e inputs */
+    text-align: center; 
+    font-family: 'Times New Roman', Times, serif;
+    margin: 0;
+    padding: 20px;
+}
+
+h1{
+    font-size: 50px;
+    color: cornflowerblue;
+}
+
+/* 2. Los elementos de bloque (como la tabla y el formulario) 
+      necesitan márgenes automáticos para centrarse */
+table, form {
+    margin-left: auto;
+    margin-right: auto;
+    display: table; /* Asegura que el formulario solo ocupe su contenido */
+}
+
+/* 3. Añade separación entre los bloques */
+h1, form, table {
+    margin-bottom: 40px;
+}
+
+/* Estilos de tu tabla corregidos */
+table {
+    border: 2px solid cornflowerblue;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid cornflowerblue;
+    padding: 10px;
+    font-size: 20px;
+}
+
+.btn-grande{
+    font-size: 20px;
+}
+
+.btn-azul{
+    color: cornflowerblue;
+}
+
+.btn-margen1{
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-bottom: 30px;
+    margin-top: 15px;
+}
+
+#botonesOcultos{
+    margin-left: 30%;
+}
+
+.btn-margen2{
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+}
+
+#miVentana{
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Centra el texto y botones dentro */
+}
+
+#miVentana h1 {
+    color: black;
+}
+
+#miVentana input, label{
+    font-size: 20px;
+}
+
+#miVentana button {
+    font-size: 20px;
+    margin-left: 30px;
+}
+
+
+#miVentana1{
+    background-color: #FADADD;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Centra el texto y botones dentro */
+}
+
+#miVentana1 h1 {
+    color: black;
+}
+
+#miVentana1 input, label{
+    font-size: 20px;
+}
+
+#miVentana1 button {
+    font-size: 20px;
+    margin-left: 30px;
+}
+
+#miVentana2 {
+    background-color: #C8A2C8;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Centra el texto y botones dentro */
+}
+
+#miVentana2 h1 {
+    color: black;
+}
+
+#miVentana2 input, label{
+    font-size: 20px;
+}
+
+#miVentana2 button {
+    font-size: 20px;
+    margin-left: 30px;
+}
+
+select {
+    font-size: 20px;
+}
