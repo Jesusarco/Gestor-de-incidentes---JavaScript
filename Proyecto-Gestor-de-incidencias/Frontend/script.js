@@ -192,7 +192,7 @@ async function almacenardatos() {
 // =============================================
 // LOGIN
 // =============================================
-async function iniciarSesion() {
+async function iniciarSesion() {     //El async sirve para poder utilizar el await
     const usuario = document.getElementById("userLogin").value;
     const contraseña = document.getElementById("passwordLogin").value;
 
@@ -240,8 +240,7 @@ async function cargarIncidencias() {
         const data = JSON.parse(text);
 
         if (data.success) {
-            incidencias = data.data;
-            console.log("INCIDENCIAS:", incidencias);
+            incidencias = data.data;        //Aquí se almacena los objetos en el array
 
             actualizarTablaCompleta();
         } else {
@@ -256,7 +255,7 @@ async function cargarIncidencias() {
 // =============================================
 // CREAR INCIDENCIA
 // =============================================
-async function crearIncidencia() {
+async function crearIncidencia() {      //Aquí se crea el objeto para el array
     const nuevaIncidencia = {
         fecha: document.getElementById('date').value,
         descripcion: document.getElementById('desciption').value.toUpperCase(),
@@ -327,7 +326,7 @@ async function borrarIncidencia() {
 // =============================================
 // TABLA
 // =============================================
-function actualizarTablaCompleta() {
+function actualizarTablaCompleta() {        //Aquí se recorre el array y se accede a las propiedades de cada objeto
     const tabla = document.querySelector('table');
 
     tabla.querySelectorAll('tr:not(:first-child)').forEach(e => e.remove());
