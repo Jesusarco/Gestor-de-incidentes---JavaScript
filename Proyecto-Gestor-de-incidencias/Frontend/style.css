@@ -126,3 +126,18 @@ th, td {
 select {
     font-size: 20px;
 }
+
+/* ========== NUEVO: Centrado para botón Salir ========== */
+.centrar {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Opcional: mejorar el área de resultado de consulta */
+#resultadoConsulta {
+    font-size: 16px;
+    font-family: monospace;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}

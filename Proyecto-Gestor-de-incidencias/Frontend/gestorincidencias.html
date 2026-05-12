@@ -100,17 +100,35 @@
         <br><br>
 
         <table>
-            <!-- El tr son las filas y el td/th son las columnas -->
-            <tr>
-                <td> Localizador </td>
-                <td> Fecha </td>
-                <td> Descripción  </td>
-                <td> Tipo </td>
-                <td> Prioridad </td>
-                <td> Tiempo asignado (minutos) </td>
-                <td> Técnico asignado </td>
-            </tr>
+            <thead>
+                <tr>
+                    <th> Localizador </th>
+                    <th> Fecha </th>
+                    <th> Descripción  </th>
+                    <th> Tipo </th>
+                    <th> Prioridad </th>
+                    <th> Tiempo asignado (minutos) </th>
+                    <th> Técnico asignado </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se cargan las incidencias dinámicamente -->
+            </tbody>
         </table>
-        
+
+        <!-- Botón Salir Modo Administrador (oculto al inicio) -->
+        <div id="btnSalirContainer" class="centrar" style="display: none;">
+            <button class="btn-grande btn-margen2" type="button" onclick="salirModoAdministrador()">Salir del modo Administrador</button>
+        </div>
+
+        <!-- Consulta de incidencias  -->
+        <div id="consultaContainer" style="text-align: center; margin-top: 30px; display: block;">
+            <h3>Consultar incidencia</h3>
+            <label>Localizador (ID): </label>
+            <input type="number" id="consultarId" placeholder="Ej: 1, 2, 3...">
+            <button type="button" onclick="consultarIncidencia()">Consultar</button>
+            <div id="resultadoConsulta" style="margin-top: 15px; background: #f0f0f0; padding: 10px; border-radius: 5px;"></div>
+        </div>
+
     </body>
 </html>
