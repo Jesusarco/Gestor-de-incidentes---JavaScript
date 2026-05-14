@@ -1,41 +1,60 @@
 // =============================================
 // VARIABLES GLOBALES
 // =============================================
-const API_URL = 'http://localhost/Proyecto-Gestor-de-incidencias/Backend';
+const API_URL = 'http://localhost:8080/Proyecto-Gestor-de-incidencias/Backend'; // Ajusta si usas puerto 8080
 
 let usuarioActual = null;
 let incidencias = [];
 
 // =============================================
-// FUNCIONES DE REGISTRO Y LOGIN
+// COLECCIÓN LOCAL DE USUARIOS (RA4ecd)
+// Array de objetos { nombre, claveLetras }
 // =============================================
+let usuariosColeccion = [];
 
-function secuencia() {
-    if (verificar()) {
-        almacenardatos();
+function agregarAColeccionLocal(nombre, claveCompleta) {
+    const claveLetras = claveCompleta.replace(/[^A-Z]/g, '');
+    if (!usuariosColeccion.some(u => u.nombre === nombre)) {
+        usuariosColeccion.push({ nombre, claveLetras });
+        console.log(`Usuario añadido a colección local: ${nombre} (${claveLetras})`);
     }
 }
 
+function buscarEnColeccionLocal(nombre) {
+    return usuariosColeccion.find(u => u.nombre === nombre);
+}
+
+function mostrarColeccionLocal() {
+    console.table(usuariosColeccion);
+}
+
+// =============================================
+// FUNCIONES DE REGISTRO Y LOGIN
+// =============================================
+function onCheckRegistro(e) {
+    const pass = document.getElementById("passwordRegistro");
+    pass.type = e.checked ? "text" : "password";
+    e.nextElementSibling.textContent = e.checked ? "Ocultar" : "Mostrar";
+}
+
+function onCheckLogin(e) {
+    const pass = document.getElementById("passwordLogin");
+    pass.type = e.checked ? "text" : "password";
+    e.nextElementSibling.textContent = e.checked ? "Ocultar" : "Mostrar";
+}
 
 function verificar() {
-    const contraseña = document.getElementById('passwordRegistro');
-    const patron = /^(?=.*[a-zA-Z].*[a-zA-Z].*[a-zA-Z])(?=.*\d.*\d.*\d)[a-zA-Z\d]{6}$/;
-    
-    if (patron.test(contraseña.value)) {
-        console.log('Contraseña válida');
-        return true;
-    } else {
-        alert('Contraseña incorrecta: debe tener exactamente 3 letras y 3 números');
-        return false;
-    }
+    const pass = document.getElementById('passwordRegistro').value;
+    const patron = /^(?=.*[A-Z].*[A-Z].*[A-Z])(?=.*\d.*\d.*\d)[A-Z\d]{6}$/;
+    if (patron.test(pass)) return true;
+    alert('Contraseña incorrecta: debe tener exactamente 3 letras mayúsculas y 3 números (ej: ABC123)');
+    return false;
 }
 
 function abrirVentana() {
     document.getElementById("miVentana").style.display = "flex";
     document.getElementById("miVentana1").style.display = "none";
-    if (document.getElementById("miVentana2")) {
-        document.getElementById("miVentana2").style.display = "none";
-    }
+    document.getElementById("miVentana2") && (document.getElementById("miVentana2").style.display = "none");
 }
 
 function cerrarVentana() {
@@ -45,46 +64,44 @@ function cerrarVentana() {
 }
 
 async function almacenardatos() {
-    const user = document.getElementById("userRegistro").value;
+    const user = document.getElementById("userRegistro").value.trim();
     const password = document.getElementById("passwordRegistro").value;
+    if (!user || !password) return alert("Rellena todos los campos");
+    if (!verificar()) return;
 
-    if (!user || !password) {
-        alert("Rellena todos los campos");
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/registro.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: user,
-                password: password
-            })
-        });
-
-        const text = await response.text();
-        const data = JSON.parse(text);
-
-        if (data.success) {
-            alert("Usuario registrado correctamente");
-            cerrarVentana();
-        } else {
-            alert(data.message);
+    async function enviarRegistro(force = false) {
+        try {
+            const res = await fetch(`${API_URL}/registro.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password, force })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                agregarAColeccionLocal(user, password);
+                cerrarVentana();
+                return true;
+            } else if (data.needConfirmation) {
+                if (confirm(data.message)) return await enviarRegistro(true);
+                else alert("Registro cancelado.");
+                return false;
+            } else {
+                alert(data.message);
+                return false;
+            }
+        } catch (error) {
+            alert("Error de conexión");
+            return false;
         }
-
-    } catch (error) {
-        console.error("ERROR REAL:", error);
-        alert("Error de conexión con el servidor");
     }
+    await enviarRegistro(false);
 }
 
 function abrirVentanaLogin() {
     document.getElementById("miVentana1").style.display = "flex";
     document.getElementById("miVentana").style.display = "none";
-    if (document.getElementById("miVentana2")) {
-        document.getElementById("miVentana2").style.display = "none";
-    }
+    document.getElementById("miVentana2") && (document.getElementById("miVentana2").style.display = "none");
 }
 
 function cerrarVentanaLogin() {
@@ -94,106 +111,73 @@ function cerrarVentanaLogin() {
 }
 
 async function iniciarSesion() {
-    const usuario = document.getElementById("userLogin").value;
-    const contraseña = document.getElementById("passwordLogin").value;
+    const usuario = document.getElementById("userLogin").value.trim();
+    const letras = document.getElementById("passwordLogin").value.trim();
+    if (!usuario || !letras) return alert("Introduce usuario y las letras de tu contraseña");
 
-    if (usuario === "" || contraseña === "") {
-        alert("Por favor, introduce usuario y contraseña");
-        return false;
-    }
+    const soloLetras = /^[A-Z]+$/;
+    if (!soloLetras.test(letras)) return alert("La contraseña solo debe contener letras mayúsculas (sin números)");
 
     try {
-        const response = await fetch(`${API_URL}/login.php`, {
+        const res = await fetch(`${API_URL}/login.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: usuario, password: contraseña })
+            body: JSON.stringify({ username: usuario, password: letras })
         });
-
-        const data = await response.json();
-
+        const data = await res.json();
         if (data.success) {
             usuarioActual = data.user.nombre;
-            alert(` ¡Bienvenido/a ${usuarioActual}!`);
-            console.log("Sesión iniciada por:", usuarioActual);
-            
+            alert(`Sesión iniciada como ${usuarioActual}`);
+            // Añadir a colección local si no existe
+            if (!usuariosColeccion.some(u => u.nombre === usuarioActual)) {
+                usuariosColeccion.push({ nombre: usuarioActual, claveLetras: letras });
+            }
             document.getElementById("botonesOcultos").style.display = "block";
-            document.getElementById("userLogin").value = "";
-            document.getElementById("passwordLogin").value = "";
-            cerrarVentanaLogin();
-            
-            // Cargar incidencias desde MySQL
-            await cargarIncidencias();
-
             document.getElementById("btnSalirContainer").style.display = "block";
             document.getElementById("consultaContainer").style.display = "none";
-            
+            cerrarVentanaLogin();
+            await cargarIncidencias();
             return true;
         } else {
-            alert(" " + data.message);
+            alert(data.message);
             return false;
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert("Error de conexión con el servidor");
+        alert("Error de conexión");
         return false;
     }
 }
 
-function haySesionActiva() {
-    return usuarioActual !== null;
-}
+function haySesionActiva() { return usuarioActual !== null; }
 
 function cerrarSesion() {
     if (usuarioActual) {
-        console.log("Cerrando sesión de:", usuarioActual);
         usuarioActual = null;
         incidencias = [];
-        document.getElementById("botonesOcultos").style.display = "none";
-        
-        // Limpiar tabla
         actualizarTablaCompleta();
-        
-        // Mostrar de nuevo el botón de salir y la consulta
+        document.getElementById("botonesOcultos").style.display = "none";
         document.getElementById("btnSalirContainer").style.display = "none";
         document.getElementById("consultaContainer").style.display = "block";
-        // Limpiar resultado de consulta
-        const resultadoDiv = document.getElementById("resultadoConsulta");
-        if (resultadoDiv) resultadoDiv.innerHTML = "";
-        
-        alert("Sesión cerrada correctamente");
+        alert("Sesión cerrada");
     }
 }
 
 // =============================================
-// CARGAR INCIDENCIAS
+// FUNCIONES DE INCIDENCIAS
 // =============================================
 async function cargarIncidencias() {
     try {
-        const response = await fetch(`${API_URL}/incidencias.php`);
-
-        const text = await response.text();
-        console.log("RESPUESTA RAW:", text);
-
-        const data = JSON.parse(text);
-
+        const res = await fetch(`${API_URL}/incidencias.php`);
+        const data = await res.json();
         if (data.success) {
-            incidencias = data.data;        //Aquí se almacena los objetos en el array
-
+            incidencias = data.data;
             actualizarTablaCompleta();
-        } else {
-            console.error("Error backend:", data.message);
-        }
-
-    } catch (error) {
-        console.error("ERROR REAL:", error);
-    }
+        } else console.error("Error backend:", data.message);
+    } catch (error) { console.error(error); }
 }
 
-// =============================================
-// CREAR INCIDENCIA
-// =============================================
-async function crearIncidencia() {      //Aquí se crea el objeto para el array
-    const nuevaIncidencia = {
+async function crearIncidencia() {
+    const nueva = {
         fecha: document.getElementById('date').value,
         descripcion: document.getElementById('desciption').value.toUpperCase(),
         tipo: document.getElementById('tipoIncidencia').value,
@@ -202,119 +186,52 @@ async function crearIncidencia() {      //Aquí se crea el objeto para el array
         tecnicoAsignado: document.getElementById('tecnicoAsignado').value,
         creadoPor: usuarioActual
     };
-
     try {
-        const response = await fetch(`${API_URL}/incidencias.php`, {
+        const res = await fetch(`${API_URL}/incidencias.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevaIncidencia)
+            body: JSON.stringify(nueva)
         });
-
-        const text = await response.text();
-        const data = JSON.parse(text);
-
+        const data = await res.json();
         if (data.success) {
             alert("Incidencia creada ID: " + data.id);
             await cargarIncidencias();
             cerrarVentanaIncidencia();
-        } else {
-            alert(data.message);
-        }
-
-    } catch (error) {
-        console.error(error);
-        alert("Error de conexión");
-    }
+        } else alert(data.message);
+    } catch (error) { alert("Error de conexión"); }
 }
 
-// =============================================
-// BORRAR INCIDENCIA
-// =============================================
 async function borrarIncidencia() {
-
-    await cargarIncidencias(); //FORZAR CARGA
-
-    if (incidencias.length === 0) {
-        alert("No hay incidencias para borrar");
-        return;
-    }
-
-    const primera = incidencias[incidencias.length - 1];
-
+    if (incidencias.length === 0) return alert("No hay incidencias para borrar");
+    const ultima = incidencias[incidencias.length - 1];
     try {
-        const response = await fetch(`${API_URL}/incidencias.php?id=${primera.id}`, {
-            method: 'DELETE'
-        });
-
-        const data = await response.json();
-
+        const res = await fetch(`${API_URL}/incidencias.php?id=${ultima.id}`, { method: 'DELETE' });
+        const data = await res.json();
         if (data.success) {
-            alert("Incidencia eliminada correctamente");
+            alert("Incidencia eliminada");
             await cargarIncidencias();
-        } else {
-            alert(data.message);
-        }
-
-    } catch (error) {
-        console.error(error);
-    }
+        } else alert(data.message);
+    } catch (error) { console.error(error); }
 }
 
-// =============================================
-// TABLA
-// =============================================
-function actualizarTablaCompleta() {        //Aquí se recorre el array y se accede a las propiedades de cada objeto
+function actualizarTablaCompleta() {
     const tbody = document.querySelector('table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-
     incidencias.forEach(i => {
-        const fila = tbody.insertRow();
-
-        fila.innerHTML = `
-            <td>${i.id}</td>
-            <td>${i.fecha}</td>
-            <td>${i.descripcion}</td>
-            <td>${i.tipo}</td>
-            <td>${i.prioridad}</td>
-            <td>${i.tiempo_estimado}</td>
-            <td>${i.tecnico_asignado}</td>
-        `;
+        tbody.innerHTML += `<tr>
+            <td>${i.id}</td><td>${i.fecha}</td><td>${i.descripcion}</td>
+            <td>${i.tipo}</td><td>${i.prioridad}</td>
+            <td>${i.tiempo_estimado}</td><td>${i.tecnico_asignado}</td>
+        </tr>`;
     });
 }
 
-// =============================================
-// CONTADOR
-// =============================================
-function actualizarContadorVisual() {
-    const el = document.getElementById("numIncidencias");
-    if (el) el.textContent = incidencias.length;
-}
-
-
-// =============================================
-// FUNCIONES DE INCIDENCIAS
-// =============================================
-
 function abrirVentanaIncidencia() {
-    if (!haySesionActiva()) {
-        alert("Debes iniciar sesión primero");
-        return;
-    }
-    
-    // Verificar límite de 3 incidencias
-    if (incidencias.length >= 3) {
-        alert(" Límite alcanzado: Solo puedes tener máximo 3 incidencias activas.\nDebes borrar alguna incidencia antes de crear una nueva.");
-        return;
-    }
-    
-    // Establecer fecha actual por defecto
+    if (!haySesionActiva()) return alert("Debes iniciar sesión primero");
+    if (incidencias.length >= 3) return alert("Máximo 3 incidencias activas. Borra una primero.");
     const hoy = new Date();
-    const año = hoy.getFullYear();
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    document.getElementById('date').value = `${año}-${mes}-${dia}`;
-    
+    document.getElementById('date').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
     document.getElementById("miVentana2").style.display = "flex";
     document.getElementById("miVentana").style.display = "none";
     document.getElementById("miVentana1").style.display = "none";
@@ -325,72 +242,35 @@ function cerrarVentanaIncidencia() {
     document.getElementById("formularioIncidencia").reset();
 }
 
-// =============================================
-// Salir del modo administrador
-// =============================================
 function salirModoAdministrador() {
-    if (usuarioActual === null) {
-        alert("No hay sesión activa. No estás en modo administrador.");
-        return;
-    }
-    // Llamamos a la función existente que cierra sesión y oculta los botones
-    cerrarSesion();
+    if (!usuarioActual) alert("No hay sesión activa");
+    else cerrarSesion();
 }
 
-// =============================================
-// Consultar incidencia por ID (solo sin sesión)
-// =============================================
 async function consultarIncidencia() {
-    // Verificar que NO estamos en modo administrador 
-    if (usuarioActual !== null) {
-        alert("No se puede consultar una incidencia mientras estás en modo administrador.\nPor favor, sal del modo administrador primero.");
-        return;
-    }
-
+    if (usuarioActual) return alert("No se puede consultar mientras estás en modo administrador. Sal primero.");
     const id = document.getElementById("consultarId").value;
-    if (!id) {
-        alert("Introduce un número de localizador (ID) válido.");
-        return;
-    }
-
-    const idNumero = parseInt(id, 10);
-    if (isNaN(idNumero)) {
-        alert("El localizador debe ser un número.");
-        return;
-    }
-
+    if (!id) return alert("Introduce un ID válido.");
     try {
-        // Obtener todas las incidencias (mismo endpoint que ya existe)
-        const response = await fetch(`${API_URL}/incidencias.php`);
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.message || "Error al obtener incidencias");
-        }
-
-        const incidencias = data.data;
-        // Buscar la incidencia cuyo ID coincida
-        const encontrada = incidencias.find(inc => inc.id == idNumero);
-
-        const resultadoDiv = document.getElementById("resultadoConsulta");
+        const res = await fetch(`${API_URL}/incidencias.php`);
+        const data = await res.json();
+        if (!data.success) throw new Error();
+        const encontrada = data.data.find(inc => inc.id == id);
+        const div = document.getElementById("resultadoConsulta");
         if (encontrada) {
-            // Mostrar los detalles de forma legible 
-            resultadoDiv.innerHTML = `
-                <strong>Incidencia encontrada</strong><br>
-                <strong style="color: cornflowerblue;">ID:</strong> ${encontrada.id}<br>
-                <strong style="color: cornflowerblue;">Fecha:</strong> ${encontrada.fecha}<br>
-                <strong style="color: cornflowerblue;">Descripción:</strong> ${encontrada.descripcion}<br>
-                <strong style="color: cornflowerblue;">Tipo:</strong> ${encontrada.tipo}<br>
-                <strong style="color: cornflowerblue;">Prioridad:</strong> ${encontrada.prioridad}<br>
-                <strong style="color: cornflowerblue;">Tiempo estimado:</strong> ${encontrada.tiempo_estimado} minutos<br>
-                <strong style="color: cornflowerblue;">Técnico asignado:</strong> ${encontrada.tecnico_asignado}<br>
-                <strong style="color: cornflowerblue;">Creado por:</strong> ${encontrada.creado_por || "Desconocido"}
-            `;
+            div.innerHTML = `<strong>Incidencia encontrada</strong><br>
+                <strong>ID:</strong> ${encontrada.id}<br>
+                <strong>Fecha:</strong> ${encontrada.fecha}<br>
+                <strong>Descripción:</strong> ${encontrada.descripcion}<br>
+                <strong>Tipo:</strong> ${encontrada.tipo}<br>
+                <strong>Prioridad:</strong> ${encontrada.prioridad}<br>
+                <strong>Tiempo estimado:</strong> ${encontrada.tiempo_estimado} minutos<br>
+                <strong>Técnico asignado:</strong> ${encontrada.tecnico_asignado}<br>
+                <strong>Creado por:</strong> ${encontrada.creado_por || "Desconocido"}`;
         } else {
-            resultadoDiv.innerHTML = `No se encontró ninguna incidencia con ID = ${idNumero}.`;
+            div.innerHTML = `No se encontró incidencia con ID = ${id}.`;
         }
     } catch (error) {
-        console.error("Error en consulta:", error);
-        document.getElementById("resultadoConsulta").innerHTML = "Error de conexión o servidor. Inténtalo más tarde.";
+        document.getElementById("resultadoConsulta").innerHTML = "Error de conexión.";
     }
 }
