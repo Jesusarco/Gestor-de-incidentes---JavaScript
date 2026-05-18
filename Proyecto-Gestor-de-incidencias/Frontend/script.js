@@ -1,7 +1,7 @@
 // =============================================
 // VARIABLES GLOBALES
 // =============================================
-const API_URL = 'http://localhost:8080/Proyecto-Gestor-de-incidencias/Backend'; // Ajusta si usas puerto 8080
+const API_URL = 'http://localhost/Proyecto-Gestor-de-incidencias/Backend'; // Ajusta si usas puerto 8080
 
 let usuarioActual = null;
 let incidencias = [];
