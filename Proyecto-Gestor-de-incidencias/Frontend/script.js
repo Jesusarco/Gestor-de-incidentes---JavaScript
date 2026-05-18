@@ -214,7 +214,7 @@ async function borrarIncidencia() {
     if (incidencias.length === 0) return alert("No hay incidencias para borrar");
     const ultima = incidencias[incidencias.length - 1];
     try {
-        const res = await fetch(`${API_URL}/incidencias.php?id=${ultima.id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_URL}/incidencias.php?id=${ultima.id}`, { method: 'DELETE' });    //Relacionado a incidencias.php
         const data = await res.json();
         if (data.success) {
             alert("Incidencia eliminada");
