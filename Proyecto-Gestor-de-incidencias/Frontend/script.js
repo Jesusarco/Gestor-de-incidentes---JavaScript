@@ -12,6 +12,7 @@ let incidencias = [];
 // =============================================
 let usuariosColeccion = [];
 
+//Para agregar un usuario a la tabla de usuarioColeccion[]
 function agregarAColeccionLocal(nombre, claveCompleta) {
     const claveLetras = claveCompleta.replace(/[^A-Z]/g, '');
     if (!usuariosColeccion.some(u => u.nombre === nombre)) {
@@ -31,18 +32,22 @@ function mostrarColeccionLocal() {
 // =============================================
 // FUNCIONES DE REGISTRO Y LOGIN
 // =============================================
+
+//Esta funcíon es solo para mostrar la contraseña en el input password
 function onCheckRegistro(e) {
     const pass = document.getElementById("passwordRegistro");
     pass.type = e.checked ? "text" : "password";
     e.nextElementSibling.textContent = e.checked ? "Ocultar" : "Mostrar";
 }
 
+//Esta funcíon es solo para mostrar la contraseña en el input password
 function onCheckLogin(e) {
     const pass = document.getElementById("passwordLogin");
     pass.type = e.checked ? "text" : "password";
     e.nextElementSibling.textContent = e.checked ? "Ocultar" : "Mostrar";
 }
 
+//Función para verficar que se haya puesto bien la contraseña
 function verificar() {
     const pass = document.getElementById('passwordRegistro').value;
     const patron = /^(?=.*[A-Z].*[A-Z].*[A-Z])(?=.*\d.*\d.*\d)[A-Z\d]{6}$/;
@@ -63,26 +68,28 @@ function cerrarVentana() {
     document.getElementById("passwordRegistro").value = "";
 }
 
+//Función asíncrona para almacenar datos
 async function almacenardatos() {
     const user = document.getElementById("userRegistro").value.trim();
     const password = document.getElementById("passwordRegistro").value;
     if (!user || !password) return alert("Rellena todos los campos");
-    if (!verificar()) return;
+    if (!verificar()) return;    //Esto llama a la función de verificar si la contraseña se ha puesto bien
 
+    //El force = false de dentro de los parentesis de la función indica si se debe forzar el registro (cuando el usuario ya aceptó borrar al más antiguo)
     async function enviarRegistro(force = false) {
         try {
-            const res = await fetch(`${API_URL}/registro.php`, {
+            const res = await fetch(`${API_URL}/registro.php`, {   //Para verificar si a salido todo bien y si se hay espación (Máximo 3)
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user, password, force })
             });
-            const data = await res.json();
+            const data = await res.json();        //Esto sirve para poner un valor que diga si se hace el if o no
             if (data.success) {
                 alert(data.message);
-                agregarAColeccionLocal(user, password);
+                agregarAColeccionLocal(user, password);        //Aquí es dode se llama a la función que lo agrega al array
                 cerrarVentana();
                 return true;
-            } else if (data.needConfirmation) {
+            } else if (data.needConfirmation) {            //Conprueba si se puede enviar el registro o no
                 if (confirm(data.message)) return await enviarRegistro(true);
                 else alert("Registro cancelado.");
                 return false;
@@ -110,16 +117,17 @@ function cerrarVentanaLogin() {
     document.getElementById("passwordLogin").value = "";
 }
 
+//Función para inciciar sesión, correspondiente al formulario de inicio de sesión
 async function iniciarSesion() {
     const usuario = document.getElementById("userLogin").value.trim();
     const letras = document.getElementById("passwordLogin").value.trim();
     if (!usuario || !letras) return alert("Introduce usuario y las letras de tu contraseña");
 
-    const soloLetras = /^[A-Z]+$/;
+    const soloLetras = /^[A-Z]+$/;        //Patrón para verificar que solo se hayan puesto solo letras y que estas esten en mayúsculas
     if (!soloLetras.test(letras)) return alert("La contraseña solo debe contener letras mayúsculas (sin números)");
 
     try {
-        const res = await fetch(`${API_URL}/login.php`, {
+        const res = await fetch(`${API_URL}/login.php`, {        //Llamada a la base de datos, solo comprueba si está en la base de datos
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: usuario, password: letras })
@@ -136,7 +144,7 @@ async function iniciarSesion() {
             document.getElementById("btnSalirContainer").style.display = "block";
             document.getElementById("consultaContainer").style.display = "none";
             cerrarVentanaLogin();
-            await cargarIncidencias();
+            await cargarIncidencias();        //Llamada a la función que muestra en la tabla las incidencias que hay en la base de datos
             return true;
         } else {
             alert(data.message);
@@ -148,7 +156,7 @@ async function iniciarSesion() {
     }
 }
 
-function haySesionActiva() { return usuarioActual !== null; }
+function haySesionActiva() { return usuarioActual !== null; }        //Función para comprobar si hay una sesión activada
 
 function cerrarSesion() {
     if (usuarioActual) {
@@ -167,15 +175,16 @@ function cerrarSesion() {
 // =============================================
 async function cargarIncidencias() {
     try {
-        const res = await fetch(`${API_URL}/incidencias.php`);
-        const data = await res.json();
+        const res = await fetch(`${API_URL}/incidencias.php`);        
+        const data = await res.json();    //Esto sirve para que cuando se resuelve, entrega el objeto JavaScript resultante
         if (data.success) {
-            incidencias = data.data;
-            actualizarTablaCompleta();
+            incidencias = data.data;    //Aquí se rellna el array incidencias de incidencias de la base de datos
+            actualizarTablaCompleta();    //Aquí se llama la función que actualiza la tabla para pponer la nueva incidencia
         } else console.error("Error backend:", data.message);
     } catch (error) { console.error(error); }
 }
 
+//Función para crear una nueva incidencia, relacionado con el formulario de crear una nueva incidencia
 async function crearIncidencia() {
     const nueva = {
         fecha: document.getElementById('date').value,
@@ -214,15 +223,14 @@ async function borrarIncidencia() {
     } catch (error) { console.error(error); }
 }
 
+//Función que solo sirve para poner las nuevas incidencia y las que ya hay dentro del array incidencias que se le ha pasado de la base de datos
 function actualizarTablaCompleta() {
     const tbody = document.querySelector('table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
     incidencias.forEach(i => {
         tbody.innerHTML += `<tr>
-            <td>${i.id}</td><td>${i.fecha}</td><td>${i.descripcion}</td>
-            <td>${i.tipo}</td><td>${i.prioridad}</td>
-            <td>${i.tiempo_estimado}</td><td>${i.tecnico_asignado}</td>
+            <td>${i.id}</td><td>${i.fecha}</td><td>${i.descripcion}</td><td>${i.tipo}</td><td>${i.prioridad}</td><td>${i.tiempo_estimado}</td><td>${i.tecnico_asignado}</td>
         </tr>`;
     });
 }
@@ -243,10 +251,11 @@ function cerrarVentanaIncidencia() {
 }
 
 function salirModoAdministrador() {
-    if (!usuarioActual) alert("No hay sesión activa");
+    if (!usuarioActual) alert("No hay sesión activa");        //Comprueva si hay un usuario iniciado
     else cerrarSesion();
 }
 
+//Función para consultar incidencias, para el apartado del buscador de incidencias. Solo visible cuando no se esta logueado
 async function consultarIncidencia() {
     if (usuarioActual) return alert("No se puede consultar mientras estás en modo administrador. Sal primero.");
     const id = document.getElementById("consultarId").value;
